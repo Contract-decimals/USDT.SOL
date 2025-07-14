@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>USDT BEP20 Contract & Wallet Send</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Styles & Libraries -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-tomorrow.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-solidity.min.js"></script>
+
+  <style>
+    body {
+      background-color: #0b0e11;
+      color: #f0b90b;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
+      max-width: 720px;
+      margin: auto;
+    }
+    h1, h2 {
+      font-weight: 900;
+      margin-bottom: 20px;
+    }
+    .code-container {
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      position: relative;
+      margin-bottom: 30px;
+      font-size: 14px;
+      max-height: 300px;
+    }
+    button.copy-btn,
+    button#connectWalletBtn,
+    button#sendUSDTBtn {
+      background-color: #f0b90b;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+    button.copy-btn:hover,
+    button#connectWalletBtn:hover,
+    button#sendUSDTBtn:hover {
+      background-color: #d3a808;
+    }
+    button.copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 6px 12px;
+      font-weight: 900;
+    }
+    #walletSection {
+      display: none;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    #walletSection label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 700;
+    }
+    #walletSection input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      margin-top: 6px;
+      font-size: 16px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #2a2a2a;
+      color: #f0b90b;
+    }
+    #statusMessage {
+      margin-top: 20px;
+      font-weight: 700;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>USDT (BEP20) Smart Contract</h1>
+
+  <div class="code-container">
+    <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
+    <pre><code class="language-solidity" id="code">
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract TetherToken {
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
+
+    address public owner;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _initialSupply) {
+        name = _name;
+        symbol = _symbol;
+        decimals = _decimals;
+        totalSupply = _initialSupply;
+        owner = msg.sender;
+        balanceOf[msg.sender] = _initialSupply;
+    }
+
+    function transfer(address recipient, uint256 amount) public returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[recipient] += amount;
+        emit Transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) public returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
+        require(balanceOf[sender] >= amount, "Insufficient balance");
+        require(allowance[sender][msg.sender] >= amount, "Allowance exceeded");
+        balanceOf[sender] -= amount;
+        balanceOf[recipient] += amount;
+        allowance[sender][msg.sender] -= amount;
+        emit Transfer(sender, recipient, amount);
+        return true;
+    }
+
+    function mint(uint256 amount) public returns (bool) {
+        require(msg.sender == owner, "Only owner can mint");
+        totalSupply += amount;
+        balanceOf[owner] += amount;
+        emit Transfer(address(0), owner, amount);
+        return true;
+    }
+
+    function burn(uint256 amount) public returns (bool) {
+        require(msg.sender == owner, "Only owner can burn");
+        require(balanceOf[owner] >= amount, "Insufficient balance to burn");
+        balanceOf[owner] -= amount;
+        totalSupply -= amount;
+        emit Transfer(owner, address(0), amount);
+        return true;
+    }
+
+    function transferOwnership(address newOwner) public {
+        require(msg.sender == owner, "Only owner can transfer ownership");
+        emit OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+    }
+}
+    </code></pre>
+  </div>
+
+  <button id="connectWalletBtn">Connect Wallet & Send USDT</button>
+
+  <div id="walletSection">
+    <h2>Send USDT Tokens</h2>
+    <div><strong>Connected Wallet:</strong> <span id="walletAddress">Not connected</span></div>
+
+    <label for="sendAmount">Amount to send (USDT):</label>
+    <input type="number" id="sendAmount" min="0" step="any" placeholder="Enter amount" />
+
+    <label for="sendRecipient">Recipient Address (BSC or ETH):</label>
+    <input type="text" id="sendRecipient" placeholder="0x..." />
+
+    <button id="sendUSDTBtn">Confirm & Send USDT</button>
+
+    <div id="statusMessage"></div>
+  </div>
+
+  <script>
+    // USDT contract address on BSC
+    const USDT_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
+
+    const USDT_ABI = [
+      "function transfer(address to, uint amount) external returns (bool)",
+      "function decimals() external view returns (uint8)",
+      "function balanceOf(address owner) external view returns (uint256)"
+    ];
+
+    const connectWalletBtn = document.getElementById("connectWalletBtn");
+    const walletSection = document.getElementById("walletSection");
+    const walletAddressSpan = document.getElementById("walletAddress");
+    const sendAmountInput = document.getElementById("sendAmount");
+    const sendRecipientInput = document.getElementById("sendRecipient");
+    const sendUSDTBtn = document.getElementById("sendUSDTBtn");
+    const statusMessage = document.getElementById("statusMessage");
+
+    let provider, signer, usdtContract, decimals, userAddress;
+
+    function copyCode() {
+      const code = document.getElementById("code").innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Contract code copied to clipboard!");
+      });
+    }
+
+    connectWalletBtn.addEventListener("click", async () => {
+      if (!window.ethereum) {
+        alert("MetaMask or compatible wallet not detected!");
+        return;
+      }
+
+      try {
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        userAddress = await signer.getAddress();
+
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId !== "0x38" && chainId !== "0x61") {
+          alert("Please switch your wallet to Binance Smart Chain mainnet or testnet.");
+          return;
+        }
+
+        usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, signer);
+        decimals = await usdtContract.decimals();
+
+        walletAddressSpan.textContent = userAddress;
+        walletSection.style.display = "block";
+        connectWalletBtn.style.display = "none";
+        statusMessage.textContent = "";
+
+      } catch (error) {
+        console.error(error);
+        alert("Failed to connect wallet: " + error.message);
+      }
+    });
+
+    sendUSDTBtn.addEventListener("click", async () => {
+      const amountStr = sendAmountInput.value.trim();
+      const recipient = sendRecipientInput.value.trim();
+
+      if (!amountStr || isNaN(amountStr) || Number(amountStr) <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+      if (!recipient || !ethers.isAddress(recipient)) {
+        alert("Please enter a valid recipient address.");
+        return;
+      }
+      if (!usdtContract) {
+        alert("Wallet not connected.");
+        return;
+      }
+
+      statusMessage.textContent = "Preparing transaction...";
+      try {
+        const amount = ethers.parseUnits(amountStr, decimals);
+        statusMessage.textContent = "Sending transaction, please approve in your wallet...";
+        const txResponse = await usdtContract.transfer(recipient, amount);
+        statusMessage.textContent = `Transaction sent: ${txResponse.hash}. Waiting for confirmation...`;
+
+        await txResponse.wait();
+        statusMessage.textContent = `✅ Transaction confirmed! Sent ${amountStr} USDT to ${recipient}.`;
+
+        sendAmountInput.value = "";
+        sendRecipientInput.value = "";
+
+      } catch (error) {
+        console.error(error);
+        statusMessage.textContent = "Transaction failed: " + (error.data?.message || error.message || error);
+      }
+    });
+  </script>
+
+</body>
+</html>
