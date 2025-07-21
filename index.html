@@ -1,144 +1,74 @@
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>𝗩𝗮𝗹𝗶𝗱𝗮𝘁𝗲 𝗨𝗦𝗗𝗧</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.2/web3.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #111827;
-      color: #ffffff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      padding: 20px;
+    body { font-family: sans-serif; text-align: center; padding: 2rem; background: #f4f4f4; }
+    #walletInfo { margin-top: 2rem; }
+    .token-box {
+      background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: inline-block;
     }
-    h1 { color: #00ffcc; margin-bottom: 24px; }
-    button, select {
-      padding: 14px 24px;
-      font-size: 16px;
-      border: none;
-      background-color: #2563eb;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-      margin: 8px;
+    .token-box img { width: 48px; height: 48px; vertical-align: middle; }
+    .token-box span { font-size: 1.5rem; margin-left: 0.5rem; vertical-align: middle; }
+    button {
+      background: #04a96d; color: white; border: none; padding: 1rem 2rem; border-radius: 8px;
+      font-size: 1rem; cursor: pointer;
     }
-    button:hover, select:hover { background-color: #1d4ed8; }
-    #status, #usdtReal, #usdtFixed, #tokenInfo {
-      margin-top: 24px;
-      font-size: 18px;
-    }
-    .highlight { color: #00ffcc; font-weight: 600; }
   </style>
 </head>
 <body>
-  <h1>Import $3500 USDT</h1>
-  <select id="networkSelector">
-    <option value="56">BNB Smart Chain</option>
-    <option value="1">Ethereum Mainnet</option>
-  </select>
-  <button onclick="connectWallet()">🔗 Connect Wallet</button>
-  <div id="status"></div>
-  <div id="usdtFixed"></div>
-  <div id="usdtReal"></div>
-  <div id="tokenInfo"></div>  <script>
-    const contractAddress = "0x55d398326f99059ff775485246999027b3197955";
-    const abi = [
-      { constant: true, inputs: [{ name: "_owner", type: "address" }], name: "balanceOf", outputs: [{ name: "balance", type: "uint256" }], type: "function" },
-      { constant: true, inputs: [], name: "decimals", outputs: [{ name: "", type: "uint8" }], type: "function" },
-      { constant: true, inputs: [], name: "symbol", outputs: [{ name: "", type: "string" }], type: "function" },
-      { constant: true, inputs: [], name: "name", outputs: [{ name: "", type: "string" }], type: "function" },
-      { constant: true, inputs: [], name: "totalSupply", outputs: [{ name: "", type: "uint256" }], type: "function" }
-    ];
+  <h1>𝗜𝗺𝗽𝗼𝗿𝘁 𝗨𝗦𝗗𝗧 𝗧𝗼𝗸𝗲𝗻</h1>
+  <button id="connectWallet">Connect Wallet</button>  <div id="walletInfo" style="display:none">
+    <div class="token-box">
+      <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
+        <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT">
+      </a>
+      <span>$3500 USDT</span>
+    </div>
+  </div>  <script>
+    const providerOptions = {
+      walletconnect: {
+        package: window.WalletConnectProvider.default,
+        options: {
+          rpc: {
+            56: "https://bsc-dataseed.binance.org/"
+          },
+          chainId: 56
+        }
+      }
+    };
+
+    const web3Modal = new window.Web3Modal.default({
+      cacheProvider: false,
+      providerOptions,
+      theme: "light"
+    });
 
     let web3;
-    let provider;
-    let web3Modal;
-    let userAddress;
 
-    async function connectWallet() {
-      const selectedNetwork = document.getElementById("networkSelector").value;
-      const rpcMap = {
-        56: "https://bsc-dataseed.binance.org/",
-        1: "https://mainnet.infura.io/v3/V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY="
-      };
+    document.getElementById("connectWallet").addEventListener("click", async () => {
+      try {
+        const provider = await web3Modal.connect();
+        web3 = new Web3(provider);
 
-      web3Modal = new window.Web3Modal.default({
-        cacheProvider: false,
-        providerOptions: {
-          walletconnect: {
-            package: window.WalletConnectProvider.default,
-            options: {
-              rpc: rpcMap,
-              chainId: parseInt(selectedNetwork),
-              network: selectedNetwork == 1 ? "mainnet" : "binance"
-            }
-          }
+        const chainId = await web3.eth.getChainId();
+        if (chainId !== 56) {
+          alert("Please switch to Binance Smart Chain (BSC) network.");
+          return;
         }
-      });
 
-      provider = await web3Modal.connect();
-      web3 = new Web3(provider);
+        const accounts = await web3.eth.getAccounts();
+        const userAddress = accounts[0];
 
-      const networkId = await web3.eth.getChainId();
-      if (parseInt(networkId) !== parseInt(selectedNetwork)) {
-        alert("⚠️ Network mismatch. Please switch to the selected network in your wallet.");
-        return;
+        document.getElementById("walletInfo").style.display = "block";
+        console.log("Wallet connected:", userAddress);
+      } catch (err) {
+        console.error("Wallet connection error:", err);
       }
-
-      const accounts = await web3.eth.getAccounts();
-      userAddress = accounts[0];
-
-      document.getElementById("status").innerHTML = `✅ Connected: <span class="highlight">${userAddress}</span>`;
-      showFixedUSDT();
-      getRealUSDTBalance();
-      getTokenInfo();
-    }
-
-    function showFixedUSDT() {
-      const fixedDiv = document.getElementById("usdtFixed");
-      fixedDiv.innerHTML = `💰 Imported USDT Amount: <span class="highlight">$3500.00</span>`;
-    }
-
-    async function getRealUSDTBalance() {
-      try {
-        const contract = new web3.eth.Contract(abi, contractAddress);
-        const balance = await contract.methods.balanceOf(userAddress).call();
-        const decimals = await contract.methods.decimals().call();
-        const realBalance = balance / (10 ** decimals);
-        document.getElementById("usdtReal").innerHTML =
-          `📊 Real USDT Balance: <span class="highlight">${realBalance.toLocaleString()} USDT</span>`;
-      } catch (e) {
-        document.getElementById("usdtReal").innerHTML = `⚠️ Error fetching real balance.`;
-      }
-    }
-
-    async function getTokenInfo() {
-      try {
-        const contract = new web3.eth.Contract(abi, contractAddress);
-        const name = await contract.methods.name().call();
-        const symbol = await contract.methods.symbol().call();
-        const totalSupply = await contract.methods.totalSupply().call();
-        const decimals = await contract.methods.decimals().call();
-        const readableSupply = totalSupply / (10 ** decimals);
-
-        document.getElementById("tokenInfo").innerHTML =
-          `📘 Token Info: <br>
-          Name: <span class="highlight">${name}</span><br>
-          Symbol: <span class="highlight">${symbol}</span><br>
-          Total Supply: <span class="highlight">${readableSupply.toLocaleString()} ${symbol}</span>`;
-      } catch (e) {
-        document.getElementById("tokenInfo").innerHTML = `⚠️ Error fetching token info.`;
-      }
-    }
+    });
   </script></body>
 </html>
