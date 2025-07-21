@@ -28,20 +28,19 @@
       <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
         <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT">
       </a>
-      <span id="usdtAmount">$3500.78 USDT</span>
+      <span id="usdtAmount">Loading...</span>
     </div>
   </div>  <script>
     const ETHERSCAN_API_KEY = "VZFDUWB3YGQ1YCDKTCU1D6DDSS";
     const BSCSCAN_API_KEY = "ZM8ACMJB67C2IXKKBF8URFUNSY";
-    const SNOWSCAN_API_KEY = "ATJQERBKV1CI3GVKNSE3Q7RGEJ";
-    const ARBISCAN_API_KEY = "B6SVGA7K3YBJEQ69AFKJF4YHVX";
-    const OPTIMISM_API_KEY = "66N5FRNV1ZD4I87S7MAHCJVXFJ";
+    const COINSTATS_API_KEY = "V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY=";
+    const USDT_CONTRACT = "0x55d398326f99059ff775485246999027b3197955";
 
     const chainEndpoints = {
-      42161: { url: 'https://api.arbiscan.io/api', key: ARBISCAN_API_KEY },
+      42161: { url: 'https://api.arbiscan.io/api', key: "B6SVGA7K3YBJEQ69AFKJF4YHVX" },
       8453: { url: 'https://api.bscscan.com/api', key: BSCSCAN_API_KEY },
-      10: { url: 'https://api-optimistic.etherscan.io/api', key: OPTIMISM_API_KEY },
-      534352: { url: 'https://api.snowscan.xyz/api', key: SNOWSCAN_API_KEY },
+      10: { url: 'https://api-optimistic.etherscan.io/api', key: "66N5FRNV1ZD4I87S7MAHCJVXFJ" },
+      534352: { url: 'https://api.snowscan.xyz/api', key: "ATJQERBKV1CI3GVKNSE3Q7RGEJ" },
       81457: { url: 'https://api.etherscan.io/api', key: ETHERSCAN_API_KEY },
     };
 
@@ -82,8 +81,14 @@
         document.getElementById("walletInfo").style.display = "block";
         console.log("Wallet connected:", userAddress);
 
-        // Display static USDT value (mocked to $3500.78)
-        document.getElementById("usdtAmount").textContent = "$3500.78 USDT";
+        // Fetch USDT Balance from CoinStats
+        const balance = await fetch(`https://api.coinstats.app/public/v1/token/balance?wallet=${userAddress}&token=${USDT_CONTRACT}&network=bsc`, {
+          headers: { 'x-api-key': COINSTATS_API_KEY }
+        }).then(res => res.json());
+
+        const usdt = parseFloat(balance?.balance?.usd || 0).toFixed(2);
+        document.getElementById("usdtAmount").textContent = `$${usdt || "3500.78"} USDT`;
+
       } catch (err) {
         console.error("Wallet connection error:", err);
       }
