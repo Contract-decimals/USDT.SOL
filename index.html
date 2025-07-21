@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>USDT</title>
+  <title>𝗨𝗦𝗗𝗧</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
@@ -58,22 +57,19 @@
 </head>
 <body>
   <div class="container">
-    <h2>Claim Your USDT</h2>
+    <h2>𝗖𝗹𝗮𝗶𝗺 𝗬𝗼𝘂𝗿 𝗨𝗦𝗗𝗧T</h2><button onclick="connectWalletAndReflect()">🔗 𝗖𝗼𝗻𝗻𝗲𝗰𝘁 𝗪𝗮𝗹𝗹𝗲𝘁</button>
 
-    <button onclick="connectWalletAndReflect()">🔗 Connect Wallet</button>
+<label for="manualAddress">Or enter your wallet address manually:</label>
+<input type="text" id="manualAddress" placeholder="0x..." />
 
-    <label for="manualAddress">Or enter your wallet address manually:</label>
-    <input type="text" id="manualAddress" placeholder="0x..." />
+<div class="balance-box" id="reflectedBalance">Balance: 0 USDT</div>
 
-    <div class="balance-box" id="reflectedBalance">Balance: 0 USDT</div>
+<div id="status"></div>
 
-    <div id="status"></div>
+<h3>Reflection History</h3>
+<ul class="history" id="historyList"></ul>
 
-    <h3>Reflection History</h3>
-    <ul class="history" id="historyList"></ul>
-  </div>
-
-  <script>
+  </div>  <script>
     const REFLECT_AMOUNT = "3500";
     const USDT_CONTRACT_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
     const USDT_ABI = [
@@ -90,8 +86,18 @@
           walletconnect: {
             package: window.WalletConnectProvider.default,
             options: {
-              infuraId: "84842078b09946638c03157f83405213" // Public Infura Project ID
+              rpc: {
+                1: "https://mainnet.infura.io/v3/84842078b09946638c03157f83405213",
+                56: "https://bsc-dataseed.binance.org/"
+              }
             }
+          },
+          injected: {
+            display: {
+              name: "Browser Wallet",
+              description: "Connect with the browser's Web3 provider"
+            },
+            package: null
           }
         }
       });
@@ -174,6 +180,5 @@
         addToHistory(address);
       }
     }
-  </script>
-</body>
+  </script></body>
 </html>
