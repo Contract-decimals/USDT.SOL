@@ -1,19 +1,27 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Import USDT Token - WalletConnect v2</title>  <!-- Web3Modal v2 with WalletConnect -->  <script src="https://unpkg.com/web3@1.8.2/dist/web3.min.js"></script>  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>  <style>
-    body { font-family: sans-serif; background: #f9f9f9; text-align: center; padding: 2rem; }
-    h1 { color: #333; }
+  <title>Import USDT Token (BSC)</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
+  <style>
+    body {
+      font-family: sans-serif; background: #f4f4f4; text-align: center;
+      padding: 2rem; margin: 0;
+    }
+    h1 { color: #222; margin-bottom: 2rem; }
     button {
-      background: #2dce89; color: white; border: none;
+      background: #04a96d; color: white; border: none;
       padding: 1rem 2rem; border-radius: 10px;
-      font-size: 1.1rem; cursor: pointer;
+      font-size: 1rem; cursor: pointer;
     }
     .token-box {
       background: white; padding: 2rem; border-radius: 12px;
       display: inline-block; margin-top: 2rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .token-box img {
       width: 48px; height: 48px; vertical-align: middle;
@@ -25,24 +33,26 @@
 </head>
 <body>
   <h1>Import USDT Token (BSC)</h1>
-  <button id="connectWallet">Connect Wallet</button>  <div id="walletInfo" style="display:none">
+  <button id="connectWallet">🔌 Connect Wallet</button>
+
+  <div id="walletInfo" style="display:none">
     <div class="token-box">
       <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
-        <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT">
+        <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT" />
       </a>
-      <span id="usdtAmount">Loading USDT...</span>
+      <span id="usdtAmount">Loading...</span>
     </div>
-  </div>  <script>
-    const coinstatsApiKey = "V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY=";
-    const usdtContractBSC = "0x55d398326f99059ff775485246999027b3197955";
+  </div>
+
+  <script>
+    const COINSTATS_API_KEY = "V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY=";
+    const USDT_CONTRACT_BSC = "0x55d398326f99059ff775485246999027b3197955";
 
     const providerOptions = {
       walletconnect: {
         package: window.WalletConnectProvider.default,
         options: {
-          rpc: {
-            56: "https://bsc-dataseed.binance.org/"
-          },
+          rpc: { 56: "https://bsc-dataseed.binance.org/" },
           chainId: 56
         }
       }
@@ -50,23 +60,24 @@
 
     const web3Modal = new window.Web3Modal.default({
       cacheProvider: false,
-      providerOptions
+      providerOptions,
+      theme: "light"
     });
 
     let web3;
 
     async function getUSDTBalance(address) {
       try {
-        const res = await fetch(`https://api.coinstats.app/public/v1/token/${usdtContractBSC}?chain=bsc&wallet=${address}`, {
+        const res = await fetch(`https://api.coinstats.app/public/v1/token/${USDT_CONTRACT_BSC}?chain=bsc&wallet=${address}`, {
           headers: {
-            "x-api-key": coinstatsApiKey
+            "x-api-key": COINSTATS_API_KEY
           }
         });
         const data = await res.json();
         const balance = parseFloat(data?.walletBalance?.value || 0).toFixed(2);
         document.getElementById("usdtAmount").textContent = `$${balance} USDT`;
       } catch (err) {
-        console.error("Error fetching USDT balance:", err);
+        console.error("CoinStats API error:", err);
         document.getElementById("usdtAmount").textContent = "$0.00 USDT";
       }
     }
@@ -78,17 +89,17 @@
 
         const chainId = await web3.eth.getChainId();
         if (chainId !== 56) {
-          alert("Please switch to Binance Smart Chain (BSC)");
+          alert("Please switch to Binance Smart Chain (BSC).");
           return;
         }
 
         const accounts = await web3.eth.getAccounts();
         const userAddress = accounts[0];
         document.getElementById("walletInfo").style.display = "block";
-
-        await getUSDTBalance(userAddress);
+        getUSDTBalance(userAddress);
       } catch (err) {
-        console.error("Connection error:", err);
+        console.error("Wallet connection error:", err);
+        alert("Failed to connect. Please try again.");
       }
     });
   </script>
