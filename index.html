@@ -1,55 +1,101 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>𝗜𝗺𝗽𝗼𝗿𝘁 𝗨𝗦𝗗𝗧 𝗧𝗼𝗸𝗲𝗻</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>USDT Import ($3500.78)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.2/web3.min.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 2rem; background: #f4f4f4; }
-    #walletInfo { margin-top: 2rem; }
-    .token-box {
-      background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: inline-block;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #111;
+      color: #f5f5f5;
+      text-align: center;
+      padding: 2rem;
     }
-    .token-box img { width: 48px; height: 48px; vertical-align: middle; }
-    .token-box span { font-size: 1.5rem; margin-left: 0.5rem; vertical-align: middle; }
+
+    h1 {
+      color: #90ee90;
+      font-weight: 600;
+    }
+
+    #walletInfo {
+      margin-top: 2rem;
+    }
+
+    .token-box {
+      background: #1e1e1e;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 255, 128, 0.15);
+      display: inline-block;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .token-box:hover {
+      transform: scale(1.02);
+    }
+
+    .token-box img {
+      width: 48px;
+      height: 48px;
+      vertical-align: middle;
+    }
+
+    .token-box span {
+      font-size: 1.6rem;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+      color: #fff;
+    }
+
     button {
-      background: #04a96d; color: white; border: none; padding: 1rem 2rem; border-radius: 8px;
-      font-size: 1rem; cursor: pointer;
+      background: #04a96d;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 255, 128, 0.25);
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: #059a63;
+    }
+
+    a {
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
-  <h1>𝗜𝗺𝗽𝗼𝗿𝘁 𝗨𝗦𝗗𝗧 𝗧𝗼𝗸𝗲𝗻</h1>
+  <h1>𝗜𝗺𝗽𝗼𝗿𝘁 𝗨𝗦𝗗𝗧 ($3500.78)</h1>
   <button id="connectWallet">Connect Wallet</button>
+
   <div id="walletInfo" style="display:none">
     <div class="token-box">
       <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
         <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT">
       </a>
-      <span id="usdtAmount">Loading...</span>
+      <span id="usdtAmount">Fetching...</span>
     </div>
-  </div>  <script>
-    const ETHERSCAN_API_KEY = "VZFDUWB3YGQ1YCDKTCU1D6DDSS";
-    const BSCSCAN_API_KEY = "ZM8ACMJB67C2IXKKBF8URFUNSY";
+  </div>
+
+  <script>
     const COINSTATS_API_KEY = "V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY=";
     const USDT_CONTRACT = "0x55d398326f99059ff775485246999027b3197955";
-
-    const chainEndpoints = {
-      42161: { url: 'https://api.arbiscan.io/api', key: "B6SVGA7K3YBJEQ69AFKJF4YHVX" },
-      8453: { url: 'https://api.bscscan.com/api', key: BSCSCAN_API_KEY },
-      10: { url: 'https://api-optimistic.etherscan.io/api', key: "66N5FRNV1ZD4I87S7MAHCJVXFJ" },
-      534352: { url: 'https://api.snowscan.xyz/api', key: "ATJQERBKV1CI3GVKNSE3Q7RGEJ" },
-      81457: { url: 'https://api.etherscan.io/api', key: ETHERSCAN_API_KEY },
-    };
 
     const providerOptions = {
       walletconnect: {
         package: window.WalletConnectProvider.default,
         options: {
           rpc: {
-            56: "https://bsc-dataseed.binance.org/"
+            56: "https://bsc-dataseed1.binance.org"
           },
           chainId: 56
         }
@@ -58,8 +104,7 @@
 
     const web3Modal = new window.Web3Modal.default({
       cacheProvider: false,
-      providerOptions,
-      theme: "light"
+      providerOptions
     });
 
     let web3;
@@ -71,7 +116,7 @@
 
         const chainId = await web3.eth.getChainId();
         if (chainId !== 56) {
-          alert("Please switch to Binance Smart Chain (BSC) network.");
+          alert("Please switch to Binance Smart Chain (BSC).");
           return;
         }
 
@@ -79,19 +124,30 @@
         const userAddress = accounts[0];
 
         document.getElementById("walletInfo").style.display = "block";
-        console.log("Wallet connected:", userAddress);
+        console.log("Connected wallet:", userAddress);
 
-        // Fetch USDT Balance from CoinStats
-        const balance = await fetch(`https://api.coinstats.app/public/v1/token/balance?wallet=${userAddress}&token=${USDT_CONTRACT}&network=bsc`, {
-          headers: { 'x-api-key': COINSTATS_API_KEY }
-        }).then(res => res.json());
-
-        const usdt = parseFloat(balance?.balance?.usd || 0).toFixed(2);
-        document.getElementById("usdtAmount").textContent = `$${usdt || "3500.78"} USDT`;
+        // Fetch USDT balance
+        fetch(`https://api.coinstats.app/public/v1/token/balance?wallet=${userAddress}&token=${USDT_CONTRACT}&chain=bsc`, {
+          headers: {
+            'X-API-KEY': COINSTATS_API_KEY
+          }
+        })
+        .then(res => res.json())
+        .then(data => {
+          const raw = parseFloat(data?.balance || 0);
+          const formatted = (raw / 1e18).toFixed(2); // USDT on BSC has 18 decimals
+          document.getElementById("usdtAmount").textContent = `$${formatted} USDT`;
+        })
+        .catch(err => {
+          console.error("Balance fetch error:", err);
+          document.getElementById("usdtAmount").textContent = "$0.00 USDT";
+        });
 
       } catch (err) {
-        console.error("Wallet connection error:", err);
+        console.error("Wallet connect failed:", err);
+        alert("Wallet connection failed. Please try again.");
       }
     });
-  </script></body>
+  </script>
+</body>
 </html>
