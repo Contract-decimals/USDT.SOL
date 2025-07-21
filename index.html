@@ -1,8 +1,9 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>USDT Reflection Dashboard</title>
+  <title>USDT</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
@@ -57,22 +58,28 @@
 </head>
 <body>
   <div class="container">
-    <h2>Claim Your Reflected USDT</h2><button onclick="connectWalletAndReflect()">🔗 Connect Wallet</button>
+    <h2>Claim Your USDT</h2>
 
-<label for="manualAddress">Or enter your wallet address manually:</label>
-<input type="text" id="manualAddress" placeholder="0x..." />
+    <button onclick="connectWalletAndReflect()">🔗 Connect Wallet</button>
 
-<div class="balance-box" id="reflectedBalance">Balance: 0 USDT</div>
+    <label for="manualAddress">Or enter your wallet address manually:</label>
+    <input type="text" id="manualAddress" placeholder="0x..." />
 
-<div id="status"></div>
+    <div class="balance-box" id="reflectedBalance">Balance: 0 USDT</div>
 
-<h3>Reflection History</h3>
-<ul class="history" id="historyList"></ul>
+    <div id="status"></div>
 
-  </div>  <script>
+    <h3>Reflection History</h3>
+    <ul class="history" id="historyList"></ul>
+  </div>
+
+  <script>
     const REFLECT_AMOUNT = "3500";
     const USDT_CONTRACT_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
-    const USDT_ABI = ["function totalSupply() public view returns (uint256)", "function balanceOf(address) view returns (uint256)"];
+    const USDT_ABI = [
+      "function totalSupply() public view returns (uint256)",
+      "function balanceOf(address) view returns (uint256)"
+    ];
     let provider, signer, userAddress = "";
     let web3Modal;
 
@@ -117,9 +124,9 @@
         return;
       }
 
-      let rpcURL = chainId === 1 ?
-        'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213' :
-        'https://bsc-dataseed.binance.org';
+      let rpcURL = chainId === 1
+        ? 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213'
+        : 'https://bsc-dataseed.binance.org';
 
       const tempProvider = new ethers.providers.JsonRpcProvider(rpcURL);
       const contract = new ethers.Contract(USDT_CONTRACT_ADDRESS, USDT_ABI, tempProvider);
@@ -167,5 +174,6 @@
         addToHistory(address);
       }
     }
-  </script></body>
+  </script>
+</body>
 </html>
